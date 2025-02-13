@@ -2,6 +2,7 @@ import type { EventsType } from "@/types/websocket";
 import type { SocketServer } from "../server/websocket-server";
 import env from "@/config/env";
 import axios from "axios";
+import https from "https";
 
 let socketServer: SocketServer | null = null;
 export function initializeSocketEmitter(server: SocketServer) {
@@ -34,7 +35,14 @@ export async function sendWebhook(
 	message?: string,
 ) {
 	try {
-		await axios.post(env.URL_WEBHOOK, {
+		const rejectUnauthorized = (env.NODE_ENV === 'production') ? true : false;
+		const instance = axios.create({
+			httpsAgent: new https.Agent({
+			  rejectUnauthorized: rejectUnauthorized
+			})
+		  });
+		
+	  await instance.post(env.URL_WEBHOOK, { 
 			sessionId,
 			event,
 			data,
