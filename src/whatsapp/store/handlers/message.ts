@@ -31,12 +31,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 			logger.info({ messages: messages.length }, "Synced messages");
 		} catch (e) {
 			logger.error(e, "An error occured during messages set");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"messages.upsert",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during messages set: ${e.message}`,
+				`An error occured during messages set: ${message}`,
 			);
 		}
 	};
@@ -82,12 +87,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 						}
 					} catch (e) {
 						logger.error(e, "An error occured during message upsert");
+						//TODO: controllo su e per evitare errore in fase di build
+						let message = '';
+						if (e instanceof Error) {
+							message = e.message;
+						}
 						emitEvent(
 							"messages.upsert",
 							sessionId,
 							undefined,
 							"error",
-							`An error occured during message upsert: ${e.message}`,
+							`An error occured during message upsert: ${message}`,
 						);
 					}
 				}
@@ -132,12 +142,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 				});
 			} catch (e) {
 				logger.error(e, "An error occured during message update");
+				//TODO: controllo su e per evitare errore in fase di build
+				let message = '';
+				if (e instanceof Error) {
+					message = e.message;
+				}
 				emitEvent(
 					"messages.update",
 					sessionId,
 					undefined,
 					"error",
-					`An error occured during message update: ${e.message}`,
+					`An error occured during message update: ${message}`,
 				);
 			}
 		}
@@ -158,12 +173,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 			emitEvent("messages.delete", sessionId, { message: item });
 		} catch (e) {
 			logger.error(e, "An error occured during message delete");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"messages.delete",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during message delete: ${e.message}`,
+				`An error occured during message delete: ${message}`,
 			);
 		}
 	};
@@ -211,12 +231,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 				});
 			} catch (e) {
 				logger.error(e, "An error occured during message receipt update");
+				//TODO: controllo su e per evitare errore in fase di build
+				let message = '';
+				if (e instanceof Error) {
+					message = e.message;
+				}
 				emitEvent(
 					"message-receipt.update",
 					sessionId,
 					undefined,
 					"error",
-					`An error occured during message receipt update: ${e.message}`,
+					`An error occured during message receipt update: ${message}`,
 				);
 			}
 		}
@@ -258,12 +283,17 @@ export default function messageHandler(sessionId: string, event: BaileysEventEmi
 				});
 			} catch (e) {
 				logger.error(e, "An error occured during message reaction update");
+				//TODO: controllo su e per evitare errore in fase di build
+				let message = '';
+				if (e instanceof Error) {
+					message = e.message;
+				}
 				emitEvent(
 					"messages.reaction",
 					sessionId,
 					undefined,
 					"error",
-					`An error occured during message reaction update: ${e.message}`,
+					`An error occured during message reaction update: ${message}`,
 				);
 			}
 		}

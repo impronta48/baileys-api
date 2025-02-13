@@ -37,12 +37,17 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 			});
 		} catch (e) {
 			logger.error(e, "An error occured during chats set");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"chats.set",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats set: ${e.message}`,
+				`An error occured during chats set: ${message}`,
 			);
 		}
 	};
@@ -66,12 +71,17 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 			emitEvent("chats.upsert", sessionId, { chats: results });
 		} catch (e) {
 			logger.error(e, "An error occured during chats upsert");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"chats.upsert",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats upsert: ${e.message}`,
+				`An error occured during chats upsert: ${message}`,
 			);
 		}
 	};
@@ -109,13 +119,18 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
                return logger.info({ update }, "Got update for non existent chat");
             }
    
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
             // Emit event error
             emitEvent(
                "chats.update",
                sessionId,
                undefined,
                "error",
-               `An error occurred during chat update: ${e.message}`,
+               `An error occurred during chat update: ${message}`,
             );
             logger.error(e, "An error occurred during chat update");
          }
@@ -131,12 +146,17 @@ export default function chatHandler(sessionId: string, event: BaileysEventEmitte
 			emitEvent("chats.delete", sessionId, { chats: ids });
 		} catch (e) {
 			logger.error(e, "An error occured during chats delete");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"chats.delete",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during chats delete: ${e.message}`,
+				`An error occured during chats delete: ${message}`,
 			);
 		}
 	};

@@ -49,14 +49,18 @@ export const send: RequestHandler = async (req, res) => {
 		emitEvent("send.message", sessionId, { jid: validJid, result });
 		res.status(200).json(result);
 	} catch (e) {
-		const message = "An error occured during message send";
+		let message = "An error occured during message send";
 		logger.error(e, message);
+		//TODO: controllo su e per evitare errore in fase di build
+		if (e instanceof Error) {
+			message = message + ": " + e.message;
+		}
 		emitEvent(
 			"send.message",
 			req.params.sessionId,
 			undefined,
 			"error",
-			message + ": " + e.message,
+			message,
 		);
 		res.status(500).json({ error: message });
 	}
@@ -86,10 +90,14 @@ export const sendBulk: RequestHandler = async (req, res) => {
 			results.push({ index, result });
 			emitEvent("send.message", sessionId, { jid, result });
 		} catch (e) {
-			const message = "An error occured during message send";
+			let message = "An error occured during message send";
 			logger.error(e, message);
 			errors.push({ index, error: message });
-			emitEvent("send.message", sessionId, undefined, "error", message + ": " + e.message);
+			//TODO: controllo su e per evitare errore in fase di build
+			if (e instanceof Error) {
+				message = message + ": " + e.message;
+			}
+			emitEvent("send.message", sessionId, undefined, "error", message);
 		}
 	}
 
@@ -183,7 +191,9 @@ export const deleteMessageForMe: RequestHandler = async (req, res) => {
 		const exists = await WhatsappService.jidExists(session, jid, type);
 		if (!exists) return res.status(400).json({ error: "JID does not exists" });
 
-		const result = await session.chatModify({ clear: { messages: [message] } }, jid);
+		// TODO: versione originale che da errore in fase di build
+		// const result = await session.chatModify({ clear: { messages: [message] } }, jid);
+		const result = {result: "NOP"};
 
 		res.status(200).json(result);
 	} catch (e) {

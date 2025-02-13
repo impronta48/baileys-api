@@ -11,7 +11,8 @@ import { WAStatus } from "@/types";
 import type { Boom } from "@hapi/boom";
 import type { Response } from "express";
 import { toDataURL } from "qrcode";
-import type { WebSocket as WebSocketType } from "ws";
+// TODO: versione originale che da errore in fase di build
+// import type { WebSocket as WebSocketType } from "ws";
 import env from "@/config/env";
 
 export type Session = WASocket & {
@@ -132,12 +133,17 @@ class WhatsappService {
 						return;
 					} catch (e) {
 						logger.error(e, "An error occurred during QR generation");
+						//TODO: controllo su e per evitare errore in fase di build
+						let message = '';
+						if (e instanceof Error) {
+							message = e.message;
+						}
 						emitEvent(
 							"qrcode.updated",
 							sessionId,
 							undefined,
 							"error",
-							`Unable to generate QR code: ${e.message}`,
+							`Unable to generate QR code: ${message}`,
 						);
 						res.status(500).json({ error: "Unable to generate QR" });
 					}
@@ -154,12 +160,17 @@ class WhatsappService {
 					qr = await toDataURL(connectionState.qr);
 				} catch (e) {
 					logger.error(e, "An error occurred during QR generation");
+					//TODO: controllo su e per evitare errore in fase di build
+					let message = '';
+					if (e instanceof Error) {
+						message = e.message;
+					}
 					emitEvent(
 						"qrcode.updated",
 						sessionId,
 						undefined,
 						"error",
-						`Unable to generate QR code: ${e.message}`,
+						`Unable to generate QR code: ${message}`,
 					);
 				}
 			}
@@ -258,7 +269,9 @@ class WhatsappService {
 
 	static getSessionStatus(session: Session) {
 		const state = ["CONNECTING", "CONNECTED", "DISCONNECTING", "DISCONNECTED"];
-		let status = state[(session.ws as WebSocketType).readyState];
+		// TODO: versione originale che da errore in fase di build
+		// let status = state[(session.ws as WebSocketType).readyState];
+		let status = state[session.waStatus];
 		status = session.user ? "AUTHENTICATED" : status;
 		return session.waStatus !== WAStatus.Unknown ? session.waStatus : status.toLowerCase();
 	}

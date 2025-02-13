@@ -37,12 +37,17 @@ export default function contactHandler(sessionId: string, event: BaileysEventEmi
 			emitEvent("contacts.set", sessionId, { contacts: processedContacts });
 		} catch (e) {
 			logger.error(e, "An error occured during contacts set");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"contacts.set",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during contacts set: ${e.message}`,
+				`An error occured during contacts set: ${message}`,
 			);
 		}
 	};
@@ -67,14 +72,19 @@ export default function contactHandler(sessionId: string, event: BaileysEventEmi
 				skipDuplicates: true, // Prevent duplicate inserts
 			});
 			emitEvent("contacts.upsert", sessionId, { contacts: processedContacts });
-		} catch (error) {
-			logger.error("An unexpected error occurred during contacts upsert", error);
+		} catch (e) {
+			logger.error("An unexpected error occurred during contacts upsert", e);
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"contacts.upsert",
 				sessionId,
 				undefined,
 				"error",
-				`An unexpected error occurred during contacts upsert: ${error.message}`,
+				`An unexpected error occurred during contacts upsert: ${message}`,
 			);
 		}
 	};
@@ -96,12 +106,17 @@ export default function contactHandler(sessionId: string, event: BaileysEventEmi
 					return logger.info({ update }, "Got update for non existent contact");
 				}
 				logger.error(e, "An error occured during contact update");
+				//TODO: controllo su e per evitare errore in fase di build
+				let message = '';
+				if (e instanceof Error) {
+					message = e.message;
+				}
 				emitEvent(
 					"contacts.update",
 					sessionId,
 					undefined,
 					"error",
-					`An error occured during contact update: ${e.message}`,
+					`An error occured during contact update: ${message}`,
 				);
 			}
 		}

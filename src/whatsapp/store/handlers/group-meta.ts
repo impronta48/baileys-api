@@ -28,12 +28,17 @@ export default function groupMetadataHandler(sessionId: string, event: BaileysEv
 			emitEvent("groups.upsert", sessionId, { groups: results });
 		} catch (e) {
 			logger.error(e, "An error occured during groups upsert");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"groups.upsert",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during groups upsert: ${e.message}`,
+				`An error occured during groups upsert: ${message}`,
 			);
 		}
 	};
@@ -52,12 +57,17 @@ export default function groupMetadataHandler(sessionId: string, event: BaileysEv
 				if (e instanceof PrismaClientKnownRequestError && e.code === "P2025")
 					return logger.info({ update }, "Got metadata update for non existent group");
 				logger.error(e, "An error occured during group metadata update");
+				//TODO: controllo su e per evitare errore in fase di build
+				let message = '';
+				if (e instanceof Error) {
+					message = e.message;
+				}
 				emitEvent(
 					"groups.update",
 					sessionId,
 					undefined,
 					"error",
-					`An error occured during group metadata update: ${e.message}`,
+					`An error occured during group metadata update: ${message}`,
 				);
 			}
 		}
@@ -125,12 +135,17 @@ export default function groupMetadataHandler(sessionId: string, event: BaileysEv
 			});
 		} catch (e) {
 			logger.error(e, "An error occured during group participants update");
+			//TODO: controllo su e per evitare errore in fase di build
+			let message = '';
+			if (e instanceof Error) {
+				message = e.message;
+			}
 			emitEvent(
 				"group-participants.update",
 				sessionId,
 				undefined,
 				"error",
-				`An error occured during group participants update: ${e.message}`,
+				`An error occured during group participants update: ${message}`,
 			);
 		}
 	};
