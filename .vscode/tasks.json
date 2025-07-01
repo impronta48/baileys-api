@@ -1,0 +1,71 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "npm: build",
+            "type": "npm",
+            "script": "build",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$tsc"
+            ]
+        },
+        {
+            "label": "npm: dev",
+            "type": "npm",
+            "script": "dev",
+            "group": "build",
+            "isBackground": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": {
+                "owner": "typescript",
+                "source": "ts",
+                "applyTo": "closedDocuments",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}"
+                ],
+                "pattern": "$tsc",
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(\\s+(AM|PM))?\\s+-\\s+Starting compilation",
+                    "endsPattern": "^\\s*\\d{1,2}:\\d{1,2}:\\d{1,2}(\\s+(AM|PM))?\\s+-\\s+Found 0 errors"
+                }
+            }
+        },
+        {
+            "label": "Start with Debug",
+            "type": "shell",
+            "command": "node",
+            "args": [
+                "--inspect=9229",
+                "-r",
+                "ts-node/register",
+                "-r",
+                "tsconfig-paths/register",
+                "src/main.ts"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

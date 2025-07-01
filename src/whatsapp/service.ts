@@ -1,16 +1,17 @@
+import { prisma } from "@/config/database";
+import { WAStatus } from "@/types";
+import { delay, emitEvent, logger } from "@/utils";
+import type { Boom } from "@hapi/boom";
+import type { ConnectionState, SocketConfig, WASocket, proto } from "baileys";
 import makeWASocket, {
 	DisconnectReason,
 	isJidBroadcast,
 	makeCacheableSignalKeyStore,
 } from "baileys";
-import type { ConnectionState, SocketConfig, WASocket, proto } from "baileys";
-import { Store, useSession } from "./store";
-import { prisma } from "@/config/database";
-import { logger, delay, emitEvent } from "@/utils";
-import { WAStatus } from "@/types";
-import type { Boom } from "@hapi/boom";
 import type { Response } from "express";
 import { toDataURL } from "qrcode";
+import { generate as generateQRTerminal } from "qrcode-terminal";
+import { Store, useSession } from "./store";
 // TODO: versione originale che da errore in fase di build
 // import type { WebSocket as WebSocketType } from "ws";
 import env from "@/config/env";
@@ -73,8 +74,22 @@ class WhatsappService {
 		const configID = `${env.SESSION_CONFIG_ID}-${sessionId}`;
 		let connectionState: Partial<ConnectionState> = { connection: "close" };
 
+		// Controlla se la sessione esiste già e non è in stato di distruzione
+		if (WhatsappService.sessions.has(sessionId)) {
+			const existingSession = WhatsappService.sessions.get(sessionId)!;
+			logger.warn({ sessionId, currentStatus: existingSession.waStatus }, "Session already exists, skipping creation");
+			return;
+		}
+
+		logger.info({ sessionId }, "Creating new WhatsApp session");
+
 		const destroy = async (logout = true) => {
 			try {
+				logger.info({ sessionId, logout }, "Destroying session");
+				// Rimuovi immediatamente la sessione dalla mappa per evitare duplicati
+				WhatsappService.sessions.delete(sessionId);
+				WhatsappService.updateWaConnection(sessionId, WAStatus.Disconected);
+
 				await Promise.all([
 					logout && socket.logout(),
 					prisma.chat.deleteMany({ where: { sessionId } }),
@@ -87,7 +102,10 @@ class WhatsappService {
 			} catch (e) {
 				logger.error(e, "An error occurred during session destroy");
 			} finally {
+				// Assicurati che tutto sia pulito
 				WhatsappService.sessions.delete(sessionId);
+				WhatsappService.retries.delete(sessionId);
+				WhatsappService.SSEQRGenerations.delete(sessionId);
 				WhatsappService.updateWaConnection(sessionId, WAStatus.Disconected);
 			}
 		};
@@ -96,6 +114,16 @@ class WhatsappService {
 			const code = (connectionState.lastDisconnect?.error as Boom)?.output?.statusCode;
 			const restartRequired = code === DisconnectReason.restartRequired;
 			const doNotReconnect = !WhatsappService.shouldReconnect(sessionId);
+
+			// Log dettagliato per capire cosa sta succedendo
+			logger.info({
+				sessionId,
+				code,
+				restartRequired,
+				doNotReconnect,
+				lastDisconnectError: connectionState.lastDisconnect?.error?.message,
+				attempts: WhatsappService.retries.get(sessionId) ?? 0
+			}, "Handling connection close");
 
 			WhatsappService.updateWaConnection(sessionId, WAStatus.Disconected);
 
@@ -134,7 +162,7 @@ class WhatsappService {
 					} catch (e) {
 						logger.error(e, "An error occurred during QR generation");
 						//TODO: controllo su e per evitare errore in fase di build
-						let message = '';
+						let message = "";
 						if (e instanceof Error) {
 							message = e.message;
 						}
@@ -161,7 +189,7 @@ class WhatsappService {
 				} catch (e) {
 					logger.error(e, "An error occurred during QR generation");
 					//TODO: controllo su e per evitare errore in fase di build
-					let message = '';
+					let message = "";
 					if (e instanceof Error) {
 						message = e.message;
 					}
@@ -197,9 +225,16 @@ class WhatsappService {
 		const handleConnectionUpdate = SSE
 			? handleSSEConnectionUpdate
 			: handleNormalConnectionUpdate;
+
+		// Migliore gestione dello stato di sessione
 		const { state, saveCreds } = await useSession(sessionId);
+
+		// Controlla se i dati di sessione sono validi
+		if (!state.creds || !state.keys) {
+			logger.info({ sessionId }, "No valid session data found, creating fresh session");
+		}
+
 		const socket = makeWASocket({
-			printQRInTerminal: true,
 			browser: [env.BOT_NAME || "Whatsapp Bot", "Chrome", "3.0"],
 			generateHighQualityLinkPreview: true,
 			...socketConfig,
@@ -211,10 +246,15 @@ class WhatsappService {
 			logger,
 			shouldIgnoreJid: (jid) => isJidBroadcast(jid),
 			getMessage: async (key) => {
-				const data = await prisma.message.findFirst({
-					where: { remoteJid: key.remoteJid!, id: key.id!, sessionId },
-				});
-				return (data?.message || undefined) as proto.IMessage | undefined;
+				try {
+					const data = await prisma.message.findFirst({
+						where: { remoteJid: key.remoteJid!, id: key.id!, sessionId },
+					});
+					return (data?.message || undefined) as proto.IMessage | undefined;
+				} catch (error) {
+					logger.error({ sessionId, key, error }, "Error retrieving message");
+					return undefined;
+				}
 			},
 		});
 
@@ -231,6 +271,12 @@ class WhatsappService {
 		socket.ev.on("connection.update", (update) => {
 			connectionState = update;
 			const { connection } = update;
+
+			// Stampa QR code nel terminale quando disponibile
+			if (connectionState.qr) {
+				logger.info({ sessionId }, "QR Code generated, displaying in terminal:");
+				generateQRTerminal(connectionState.qr, { small: true });
+			}
 
 			if (connection === "open") {
 				WhatsappService.updateWaConnection(
@@ -299,7 +345,7 @@ class WhatsappService {
 		try {
 			if (type === "number") {
 				const [result] = await session.onWhatsApp(jid);
-				if(result?.exists) {
+				if (result?.exists) {
 					return result.jid;
 				} else {
 					return null;
@@ -307,7 +353,7 @@ class WhatsappService {
 			}
 
 			const groupMeta = await session.groupMetadata(jid);
-			if(groupMeta.id) {
+			if (groupMeta.id) {
 				return groupMeta.id;
 			} else {
 				return null;

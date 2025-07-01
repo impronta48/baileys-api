@@ -1,0 +1,28 @@
+{
+    "typescript.preferences.noSemicolons": "off",
+    "typescript.suggest.autoImports": true,
+    "typescript.updateImportsOnFileMove.enabled": "always",
+    "typescript.preferences.includePackageJsonAutoImports": "auto",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "files.associations": {
+        "*.env*": "properties"
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/*.log": true,
+        "**/prisma/migrations": true
+    },
+    "files.exclude": {
+        "**/dist": true,
+        "**/*.tsbuildinfo": true
+    },
+    "emmet.includeLanguages": {
+        "typescript": "javascript"
+    },
+    "debug.internalConsoleOptions": "neverOpen",
+    "debug.openDebug": "openOnDebugBreak",
+    "typescript.preferences.importModuleSpecifier": "relative"
+}
