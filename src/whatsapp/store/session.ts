@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { AuthenticationCreds, AuthenticationState, SignalDataTypeMap } from "baileys";
-import { proto } from "baileys";
-import { BufferJSON, initAuthCreds } from "baileys";
 import { prisma } from "@/config/database";
 import { logger } from "@/utils";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import type { AuthenticationCreds, AuthenticationState, SignalDataTypeMap } from "@whiskeysockets/baileys";
+import { BufferJSON, initAuthCreds, proto } from "@whiskeysockets/baileys";
 
 const fixId = (id: string) => id.replace(/\//g, "__").replace(/:/g, "-");
 

@@ -1,9 +1,9 @@
-import type { BaileysEventEmitter, MessageUserReceipt, proto, WAMessageKey } from "baileys";
-import { jidNormalizedUser, toNumber } from "baileys";
-import type { BaileysEventHandler, MakeTransformedPrisma } from "@/types";
-import { transformPrisma, logger, emitEvent } from "@/utils";
 import { prisma } from "@/config/database";
+import type { BaileysEventHandler, MakeTransformedPrisma } from "@/types";
+import { emitEvent, logger, transformPrisma } from "@/utils";
 import type { Message } from "@prisma/client";
+import type { BaileysEventEmitter, MessageUserReceipt, proto, WAMessageKey } from "@whiskeysockets/baileys";
+import { jidNormalizedUser, toNumber } from "@whiskeysockets/baileys";
 
 const getKeyAuthor = (key: WAMessageKey | undefined | null) =>
 	(key?.fromMe ? "me" : key?.participant || key?.remoteJid) || "";

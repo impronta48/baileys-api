@@ -1,4 +1,4 @@
-import type { BaileysEventMap } from "baileys";
+import type { BaileysEventMap } from "@whiskeysockets/baileys";
 
 export type BaileysEventHandler<T extends keyof BaileysEventMap> = (
 	args: BaileysEventMap[T],

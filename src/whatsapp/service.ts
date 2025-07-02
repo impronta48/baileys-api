@@ -2,12 +2,12 @@ import { prisma } from "@/config/database";
 import { WAStatus } from "@/types";
 import { delay, emitEvent, logger } from "@/utils";
 import type { Boom } from "@hapi/boom";
-import type { ConnectionState, SocketConfig, WASocket, proto } from "baileys";
+import type { ConnectionState, SocketConfig, WASocket, proto } from "@whiskeysockets/baileys";
 import makeWASocket, {
 	DisconnectReason,
 	isJidBroadcast,
 	makeCacheableSignalKeyStore,
-} from "baileys";
+} from "@whiskeysockets/baileys";
 import type { Response } from "express";
 import { toDataURL } from "qrcode";
 import { generate as generateQRTerminal } from "qrcode-terminal";

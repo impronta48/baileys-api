@@ -1,8 +1,8 @@
-import type { BaileysEventEmitter } from "baileys";
-import type { BaileysEventHandler } from "@/types";
-import { transformPrisma, logger, emitEvent } from "@/utils";
 import { prisma } from "@/config/database";
+import type { BaileysEventHandler } from "@/types";
+import { emitEvent, logger, transformPrisma } from "@/utils";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import type { BaileysEventEmitter } from "@whiskeysockets/baileys";
 
 export default function contactHandler(sessionId: string, event: BaileysEventEmitter) {
 	const model = prisma.contact;

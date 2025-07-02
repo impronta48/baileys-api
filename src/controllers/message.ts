@@ -1,12 +1,12 @@
-import type { proto, WAGenericMediaMessage, WAMessage } from "baileys";
-import { downloadMediaMessage } from "baileys";
-import { serializePrisma, delay as delayMs, logger, emitEvent } from "@/utils";
-import type { RequestHandler } from "express";
-import type { Message } from "@prisma/client";
 import { prisma } from "@/config/database";
-import WhatsappService from "@/whatsapp/service";
-import { updatePresence } from "./misc";
 import { WAPresence } from "@/types";
+import { delay as delayMs, emitEvent, logger, serializePrisma } from "@/utils";
+import WhatsappService from "@/whatsapp/service";
+import type { Message } from "@prisma/client";
+import type { proto, WAGenericMediaMessage, WAMessage } from "@whiskeysockets/baileys";
+import { downloadMediaMessage } from "@whiskeysockets/baileys";
+import type { RequestHandler } from "express";
+import { updatePresence } from "./misc";
 
 export const list: RequestHandler = async (req, res) => {
 	try {
@@ -193,7 +193,7 @@ export const deleteMessageForMe: RequestHandler = async (req, res) => {
 
 		// TODO: versione originale che da errore in fase di build
 		// const result = await session.chatModify({ clear: { messages: [message] } }, jid);
-		const result = {result: "NOP"};
+		const result = { result: "NOP" };
 
 		res.status(200).json(result);
 	} catch (e) {
