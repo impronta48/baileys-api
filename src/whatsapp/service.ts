@@ -4,13 +4,11 @@ import { delay, emitEvent, logger } from "@/utils";
 import type { Boom } from "@hapi/boom";
 import type { ConnectionState, SocketConfig, WASocket, proto } from "@whiskeysockets/baileys";
 import makeWASocket, {
-	DisconnectReason,
-	isJidBroadcast,
-	makeCacheableSignalKeyStore,
+	DisconnectReason, fetchLatestBaileysVersion, isJidBroadcast,
+	makeCacheableSignalKeyStore
 } from "@whiskeysockets/baileys";
 import type { Response } from "express";
 import { toDataURL } from "qrcode";
-import { generate as generateQRTerminal } from "qrcode-terminal";
 import { Store, useSession } from "./store";
 // TODO: versione originale che da errore in fase di build
 // import type { WebSocket as WebSocketType } from "ws";
@@ -75,11 +73,11 @@ class WhatsappService {
 		let connectionState: Partial<ConnectionState> = { connection: "close" };
 
 		// Controlla se la sessione esiste già e non è in stato di distruzione
-		if (WhatsappService.sessions.has(sessionId)) {
-			const existingSession = WhatsappService.sessions.get(sessionId)!;
-			logger.warn({ sessionId, currentStatus: existingSession.waStatus }, "Session already exists, skipping creation");
-			return;
-		}
+		// if (WhatsappService.sessions.has(sessionId)) {
+		// 	const existingSession = WhatsappService.sessions.get(sessionId)!;
+		// 	logger.warn({ sessionId, currentStatus: existingSession.waStatus }, "Session already exists, skipping creation");
+		// 	return;
+		// }
 
 		logger.info({ sessionId }, "Creating new WhatsApp session");
 
@@ -145,8 +143,8 @@ class WhatsappService {
 				);
 			}
 			setTimeout(
-				() => WhatsappService.createSession(options),
-				restartRequired ? 0 : env.RECONNECT_INTERVAL,
+					() => WhatsappService.createSession(options),
+					restartRequired ? 0 : env.RECONNECT_INTERVAL,
 			);
 		};
 
@@ -234,15 +232,19 @@ class WhatsappService {
 			logger.info({ sessionId }, "No valid session data found, creating fresh session");
 		}
 
+		const { version } = await fetchLatestBaileysVersion();
+
 		const socket = makeWASocket({
 			browser: [env.BOT_NAME || "Whatsapp Bot", "Chrome", "3.0"],
 			generateHighQualityLinkPreview: true,
+			printQRInTerminal: false,
 			...socketConfig,
 			auth: {
 				creds: state.creds,
 				keys: makeCacheableSignalKeyStore(state.keys, logger),
 			},
-			version: [2, 3000, 1015901307],
+			// version: [2, 3000, 1015901307],
+			version: version,
 			logger,
 			shouldIgnoreJid: (jid) => isJidBroadcast(jid),
 			getMessage: async (key) => {
@@ -275,7 +277,7 @@ class WhatsappService {
 			// Stampa QR code nel terminale quando disponibile
 			if (connectionState.qr) {
 				logger.info({ sessionId }, "QR Code generated, displaying in terminal:");
-				generateQRTerminal(connectionState.qr, { small: true });
+				// generateQRTerminal(connectionState.qr, { small: true });
 			}
 
 			if (connection === "open") {
